@@ -45,6 +45,7 @@ cinst -y windows-terminal
 cinst -y 7zip
 cinst -y notepadplusplus
 
+# 7. Pull Down and Extract "Dummy" Testing Tools
 Write-Output "[*] Deploying Offensive Syntax Dummy test apps..."
 
 $DesktopPath = [System.IO.Path]::Combine([Environment]::GetFolderPath("Desktop"), "Offensive Syntax Tools")
@@ -54,7 +55,6 @@ if (-not (Test-Path $DesktopPath)) {
 
 $UrlX64 = "https://github.com/Offensive-Syntax/dummy/releases/download/1.0.0/dummy-v1.0.0-win-x64.rar"
 $UrlX86 = "https://github.com/Offensive-Syntax/dummy/releases/download/1.0.0/dummy-v1.0.0-win-x86.rar"
-
 $RarX64 = Join-Path $DesktopPath "dummy_x64.rar"
 $RarX86 = Join-Path $DesktopPath "dummy_x86.rar"
 
@@ -65,12 +65,29 @@ $SevenZip = "C:\Program Files\7-Zip\7z.exe"
 if (Test-Path $SevenZip) {
     & $SevenZip x $RarX64 "-o$DesktopPath" -y | Out-Null
     & $SevenZip x $RarX86 "-o$DesktopPath" -y | Out-Null
-    
     Remove-Item $RarX64 -Force
     Remove-Item $RarX86 -Force
     Write-Output "[+] Dummy apps successfully extracted to Desktop\Offensive Syntax Tools"
 } else {
-    Write-Warning "[-] 7-Zip was not found where expected. RAR files are left intact on Desktop."
+    Write-Warning "[-] 7-Zip was not found where expected. RAR files are left intact."
+}
+
+# 8. Set Custom Offensive Syntax Desktop Background
+Write-Output "[*] Applying Offensive Syntax Desktop Wallpaper..."
+
+$WallpaperUrl = "https://raw.githubusercontent.com/Offensive-Syntax/syntax-vm/main/wallpaper.png"
+$LocalWallpaperPath = "C:\Windows\offensive_syntax_wallpaper.png"
+
+try {
+    Invoke-WebRequest -Uri $WallpaperUrl -OutFile $LocalWallpaperPath
+    
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "Wallpaper" -Value $LocalWallpaperPath
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallpaperStyle" -Value "10" # 10 = Fill, 6 = Fit, 2 = Stretch
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "TileWallpaper" -Value "0"
+    
+    Write-Output "[+] Wallpaper staged successfully."
+} catch {
+    Write-Warning "[-] Failed to download or configure custom wallpaper."
 }
 
 Write-Output "[+] Installations complete. Finalizing setup and rebooting..."
